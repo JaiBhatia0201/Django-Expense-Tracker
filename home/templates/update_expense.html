@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block start %}
+
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background-image: url();
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: bold;
+    }
+
+    .btn-primary,
+    .btn-success,
+    .btn-danger {
+        font-weight: bold;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .text{
+        color: green;
+        font-weight: bold;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    .ok {
+        color: white;
+        text-decoration: none;
+    }
+
+    .ok:hover {
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">Expense Tracker App by Jai Bhatia</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class='nav-item'>
+                    <a class="nav-link btn btn-danger text-white" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 pt-5 col-md-6">
+    <div class="card p-4 shadow-lg">
+        <form  method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h4 class="text-center mb-4" style="font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 20px;">Update Data</h4>
+            <div class="form-group">
+                <label for="name">Expense Reason</label>
+                <input type="text" name="name" value="{{expense.name}}" class="form-control" required>
+            </div>
+            <div class="form-group mt-2">
+                <label for="price">Amount</label>
+                <input name="price" type="number" value="{{expense.price}}" class="form-control" required>
+            </div>
+            <div class="form-group mt-2">
+                <label for="type">Type</label>
+                <select name="type" class="form-control" required>
+                    <option value="expense" {% if expense.type == 'expense' %}selected{% endif %}>Expense</option>
+                    <option value="income" {% if expense.type == 'income' %}selected{% endif %}>Income</option>
+                </select>
+            </div>
+            <div class="form-group mt-2">
+                <label for="category">Category</label>
+                <select name="category" class="form-control" required>
+                    <option value="Salary" {% if expense.category == 'Salary' %}selected{% endif %}>Salary</option>
+                    <option value="Bonus" {% if expense.category == 'Bonus' %}selected{% endif %}>Bonus</option>
+                    <option value="Project" {% if expense.category == 'Project' %}selected{% endif %}>Project</option>
+                    <option value="Food" {% if expense.category == 'food' %}selected{% endif %}>Food</option>
+                    <option value="Groceries" {% if expense.category == 'Groceries' %}selected{% endif %}>Groceries</option>
+                    <option value="Clothes" {% if expense.category == 'Clothes' %}selected{% endif %}>Clothes</option>
+                    <option value="Movie" {% if expense.category == 'Movie' %}selected{% endif %}>Movie</option>
+                    <option value="Rent" {% if expense.category == 'Rent' %}selected{% endif %}>Rent</option>
+                    <option value="Bills" {% if expense.category == 'Bills' %}selected{% endif %}>Bills</option>
+                    <option value="Medical" {% if expense.category == 'Medical' %}selected{% endif %}>Medical</option>
+                    <option value="Fees" {% if expense.category == 'Fees' %}selected{% endif %}>Fees</option>
+                    <option value="Tax" {% if expense.category == 'Tax' %}selected{% endif %}>Tax</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description"></textarea>
+            </div>
+            <div class="form-group mt-2">
+                <label for="date">Date</label>
+                <input type="date" name="date" value="{{expense.date}}" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-success btn-block mt-4">Update</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

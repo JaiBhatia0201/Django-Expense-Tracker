@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block start %}
+
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        background-image: url("https://images.unsplash.com/photo-1507608158173-1dcec673a2e5?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGJhY2tncm91bmQlMjBpbWlufGVufDB8fDB8fHww");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: bold;
+    }
+
+    .btn-primary,
+    .btn-warning,
+    .btn-success,
+    .btn-danger {
+        font-weight: bold;
+    }
+
+    table {
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #000;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .text { 
+        color: green; 
+        font-weight: bold; 
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; 
+    } 
+    .ok { 
+        color: white; 
+        text-decoration: none; 
+    } 
+    .ok:hover { 
+        color: white; 
+        text-decoration: none; 
+    } 
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">Expense Tracker App by Jai Bhatia</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-danger text-white" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 pt-4 ">
+    
+    <form class="card p-3 shadow-lg mb-3" method="get">
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="start_date">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="end_date">End Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="type">Type</label>
+                <select name="type" class="form-control">
+                    <option value="">All</option>
+                    <option value="expense" {% if filter_type == "expense" %}selected{% endif %}>Expense</option>
+                    <option value="income" {% if filter_type == "income" %}selected{% endif %}>Income</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'expenses' %}" class="btn btn-secondary mt-3">Reset Filters</a>
+    </form>
+
+    <button class="btn btn-success mb-4" data-toggle="modal" data-target="#addExpenseModal">Add Expense</button>
+    <button class="btn btn-warning mb-4"><a class="ok" href="{% url 'pdf' %}">Total Expenses (PDF)</a></button>
+
+    <div class="card p-3 shadow-lg">
+        <div>
+            <table class="table table-striped shadow-lg">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.id }}</td>
+                            <td>{{ expense.name }}</td>
+                            <td>{{ expense.price }}</td>
+                            <td>{{ expense.type }}</td>
+                            <td>{{ expense.category }}</td>
+                            <td>{{ expense.date }}</td>
+                            <td>
+                                <button class="btn btn-primary"><a class="ok" href="/update_expense/{{ expense.id }}">Update</a></button>
+                            </td>
+                            <td>
+                                <form method="post" action="/delete_expense/{{ expense.id }}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <h2 class="text">Total Expense: {{ total_sum }}</h2>
+        </div>
+        <div>
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExpenseModalLabel">Add New Expense</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="/">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" class="form-control" id="price" name="price" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select class="form-control" id="type" name="type" required>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="food">Food</option>
+                                <option value="travel">Travel</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('expenseChart').getContext('2d');
+    var expenseChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ expense_labels|safe }},
+            datasets: [{
+                label: 'Total Expense',
+                data: {{ expense_values|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Total Income',
+                data: {{ income_values|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
